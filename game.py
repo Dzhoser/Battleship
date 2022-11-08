@@ -59,6 +59,7 @@ class Ship:
 
 class Pole:
     def __init__(self):
+        self.ships = []
         self.pole = []
         for i in range(6):
             self.pole.append(['O' for j in range(6)])
@@ -79,6 +80,7 @@ class Pole:
         if self.is_available(_s):
             for point in _s.points:
                 self.pole[point.y - 1][point.x - 1] = "■"
+                self.ships.append(_s)
             return True
         else:
             #print("Данный корабль нельзя разместить в данной точке")
@@ -263,9 +265,68 @@ class Gamelogic:
         self.comp_pole.fdraw()
         print(self.cships)
 
+    @staticmethod
+    def put_random_ships_to_pole():
+        p_pole = Pole()
+        #разместим трехклеточный корабль
+        start_point = Point(rnd.randint(1, 4), rnd.randint(1, 4))
+        # print(start_point)
+        direction = rnd.randint(0, 1) #направление размещения 0 - горизонталь 1 - вертикаль
+        _points=[]
+        _points.append(start_point)
+        for i in range(3):
+            if direction == 0:
+                _points.append(Point(start_point.x+i, start_point.y))
+            if direction == 1:
+                _points.append(Point(start_point.x, start_point.y+i))
 
+        p_pole.add_ship(Ship(_points))
+        p_pole.change_forbidden_zone(Ship(_points))
+        p_pole.ships.append(Ship(_points))
 
+        # разместим двухклеточные корабли
+        itt = 0
+        while True:
+            start_point = Point(rnd.randint(1, 5), rnd.randint(1, 5))
+            # print(start_point)
+            direction = rnd.randint(0, 1)  # направление размещения 0 - горизонталь 1 - вертикаль
+            _points = []
+            _points.append(start_point)
+            for i in range(2):
+                if direction == 0:
+                    _points.append(Point(start_point.x + i, start_point.y))
+                if direction == 1:
+                    _points.append(Point(start_point.x, start_point.y + i))
 
+            if p_pole.add_ship(Ship(_points)):
+                p_pole.change_forbidden_zone(Ship(_points))
+                p_pole.ships.append(Ship(_points))
+                itt += 1
+            if itt == 2:
+                break
+
+        # разместим одноклеточные корабли
+        itt = 0
+        while True:
+            start_point = Point(rnd.randint(1, 6), rnd.randint(1, 6))
+            # print(start_point)
+            direction = rnd.randint(0, 1)  # направление размещения 0 - горизонталь 1 - вертикаль
+            _points = []
+            _points.append(start_point)
+            for i in range(1):
+                if direction == 0:
+                    _points.append(Point(start_point.x + i, start_point.y))
+                if direction == 1:
+                    _points.append(Point(start_point.x, start_point.y + i))
+
+            if p_pole.add_ship(Ship(_points)):
+                p_pole.change_forbidden_zone(Ship(_points))
+                p_pole.ships.append(Ship(_points))
+                itt += 1
+            if itt == 4:
+                break
+
+        return p_pole
 
 
 
@@ -289,3 +350,6 @@ print(s1.get_state())
 s1.hit(Point(1, 2))
 s1.check_state()
 print(s1.get_state())
+
+L=Gamelogic.put_random_ships_to_pole()
+print(L)
