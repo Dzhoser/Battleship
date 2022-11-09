@@ -14,6 +14,24 @@ class Point:
     def __hash__(self):
         return hash((self.x, self.y))
 
+    @staticmethod
+    def convert_coord_to_point( inp_str):
+        coord = inp_str.split()
+        if not (coord[0].isdigit()) or not (coord[0].isdigit()):
+            print("Введите числа")
+            return False
+        L = list(map(int, coord))
+        if len(L) != 2:
+            print("Введите 2 координаты")
+            return False
+        if L[0] <= 0 or L[0] > 6:
+            print("Координата х вне допустимых значений")
+            return False
+        if L[1] <= 0 or L[1] > 6:
+            print("Координата y вне допустимых значений")
+            return False
+        return Point(L[0], L[1])
+
 
 class Ship:
     def __init__(self, points):
@@ -38,23 +56,8 @@ class Ship:
         if set(self.points) == set(self.hitpoints):
             self.set_state(False)
 
-    @staticmethod
-    def convert_coord_to_point( inp_str):
-        coord = inp_str.split()
-        if not (coord[0].isdigit()) or not (coord[0].isdigit()):
-            print("Введите числа")
-            return False
-        L = list(map(int, coord))
-        if len(L) != 2:
-            print("Введите 2 координаты")
-            return False
-        if L[0] <= 0 or L[0] > 6:
-            print("Координата х вне допустимых значений")
-            return False
-        if L[1] <= 0 or L[1] > 6:
-            print("Координата y вне допустимых значений")
-            return False
-        return Point(L[0], L[1])
+
+
 
 
 class Pole:
@@ -80,7 +83,7 @@ class Pole:
         if self.is_available(_s):
             for point in _s.points:
                 self.pole[point.y - 1][point.x - 1] = "■"
-                self.ships.append(_s)
+            self.ships.append(_s)
             return True
         else:
             #print("Данный корабль нельзя разместить в данной точке")
@@ -126,6 +129,16 @@ class Pole:
                 line += self.forbidden_zone[i][j] + " | "
             print(line)
 
+    def check_loose_condition(self): #возвращает True когда нет ни одного целого корабля
+        ships_state = [ship.get_state() for ship in self.ships]
+        if True in ships_state:
+            return False
+        else:
+            return True
+
+
+
+
 
 # m1 = Pole()
 # m1.draw()
@@ -135,7 +148,7 @@ class Gamelogic:
     def __init__(self):
         self.intro()
         # self.put_ships_to_gamer_pole()
-        self.put_ships_to_computer_pole()
+        # self.put_ships_to_computer_pole()
 
     def intro(self):
         print("Игра морской бой")
@@ -143,127 +156,81 @@ class Gamelogic:
 
     def put_ships_to_gamer_pole(self):
         self.gamer_pole = Pole()
-        i = 0
-        self.gships = []
-        points = []
-
-        _len = 3
-        print("Введите координаты трехклеточного корабля x y")
-        while i < _len:
-            inp_str = input()
-            p = Ship.convert_coord_to_point(inp_str)
-            if isinstance(p, Point):
-                points.append(p)
-                i += 1
-
-        self.gamer_pole.add_ship(Ship(points))
-        self.gamer_pole.change_forbidden_zone(Ship(points))
-        self.gships.append(Ship(points))
-        i = 0
-        k = 0
-        points = []
-
-        _len = 2
-        while k < 2:
+        answer = input("Разместить корабли игрока случайным образом? y/n ")
+        if answer == "y":
+            self.gamer_pole = Gamelogic.put_random_ships_to_pole()
+        else:
+            i = 0
             points = []
-            print("Введите координаты двухклеточного корабля x y")
+
+            _len = 3
+            print("Введите координаты трехклеточного корабля x y")
             while i < _len:
                 inp_str = input()
-                p = Ship.convert_coord_to_point(inp_str)
+                p = Point.convert_coord_to_point(inp_str)
                 if isinstance(p, Point):
                     points.append(p)
                     i += 1
-            i = 0
-            if self.gamer_pole.add_ship(Ship(points)):
-                self.gamer_pole.change_forbidden_zone(Ship(points))
-                self.gships.append(Ship(points))
-                k += 1
 
-        points = []
-        i = 0
-        k = 0
-        _len = 1
-        while k < 4:
-            points = []
-            print("Введите координаты одноклеточного корабля x y")
-            while i < _len:
-                inp_str = input()
-                p = Ship.convert_coord_to_point(inp_str)
-                if isinstance(p, Point):
-                    points.append(p)
-                    i += 1
+            self.gamer_pole.add_ship(Ship(points))
+            self.gamer_pole.change_forbidden_zone(Ship(points))
+            self.gamer_pole.ships.append(Ship(points))
             i = 0
-            if self.gamer_pole.add_ship(Ship(points)):
-                self.gamer_pole.change_forbidden_zone(Ship(points))
-                self.gships.append(Ship(points))
-                k += 1
+            k = 0
+
+            _len = 2
+            while k < 2:
+                points = []
+                print("Введите координаты двухклеточного корабля x y")
+                while i < _len:
+                    inp_str = input()
+                    p = Point.convert_coord_to_point(inp_str)
+                    if isinstance(p, Point):
+                        points.append(p)
+                        i += 1
+                i = 0
+                if self.gamer_pole.add_ship(Ship(points)):
+                    self.gamer_pole.change_forbidden_zone(Ship(points))
+                    self.gamer_pole.ships.append(Ship(points))
+                    k += 1
+
+
+            i = 0
+            k = 0
+            _len = 1
+            while k < 4:
+                points = []
+                print("Введите координаты одноклеточного корабля x y")
+                while i < _len:
+                    inp_str = input()
+                    p = Point.convert_coord_to_point(inp_str)
+                    if isinstance(p, Point):
+                        points.append(p)
+                        i += 1
+                i = 0
+                if self.gamer_pole.add_ship(Ship(points)):
+                    self.gamer_pole.change_forbidden_zone(Ship(points))
+                    self.gamer_pole.ships.append(Ship(points))
+                    k += 1
 
 
     def put_ships_to_computer_pole(self):
         self.comp_pole = Pole()
-        self.cships = []
-        #разместим трехклеточный корабль
-        start_point = Point(rnd.randint(1, 4), rnd.randint(1, 4))
-        # print(start_point)
-        direction = rnd.randint(0, 1) #направление размещения 0 - горизонталь 1 - вертикаль
-        _points=[]
-        _points.append(start_point)
-        for i in range(3):
-            if direction == 0:
-                _points.append(Point(start_point.x+i, start_point.y))
-            if direction == 1:
-                _points.append(Point(start_point.x, start_point.y+i))
+        self.comp_pole = Gamelogic.put_random_ships_to_pole()
+        self.mask_comp_pole = Pole()
 
-        self.comp_pole.add_ship(Ship(_points))
-        self.comp_pole.change_forbidden_zone(Ship(_points))
-        self.cships.append(Ship(_points))
+    def show_interface(self):
+        print("        Поле игрока                    Поле компьютера")
+        print("  | 1 | 2 | 3 | 4 | 5 | 6 |      | 1 | 2 | 3 | 4 | 5 | 6 |")
+        for i in range(6):
+            line = str(i + 1) + " | "
+            for j in range(6):
+                line += self.gamer_pole.pole[i][j] + " | "
+            line += "   " + str(i + 1) + " | "
+            for j in range(6):
+                line += self.mask_comp_pole.pole[i][j] + " | "
+            print(line)
 
-        # разместим двухклеточные корабли
-        itt = 0
-        while True:
-            start_point = Point(rnd.randint(1, 5), rnd.randint(1, 5))
-            # print(start_point)
-            direction = rnd.randint(0, 1)  # направление размещения 0 - горизонталь 1 - вертикаль
-            _points = []
-            _points.append(start_point)
-            for i in range(2):
-                if direction == 0:
-                    _points.append(Point(start_point.x + i, start_point.y))
-                if direction == 1:
-                    _points.append(Point(start_point.x, start_point.y + i))
-
-            if self.comp_pole.add_ship(Ship(_points)):
-                self.comp_pole.change_forbidden_zone(Ship(_points))
-                self.cships.append(Ship(_points))
-                itt += 1
-            if itt == 2:
-                break
-
-        # разместим одноклеточные корабли
-        itt = 0
-        while True:
-            start_point = Point(rnd.randint(1, 6), rnd.randint(1, 6))
-            # print(start_point)
-            direction = rnd.randint(0, 1)  # направление размещения 0 - горизонталь 1 - вертикаль
-            _points = []
-            _points.append(start_point)
-            for i in range(1):
-                if direction == 0:
-                    _points.append(Point(start_point.x + i, start_point.y))
-                if direction == 1:
-                    _points.append(Point(start_point.x, start_point.y + i))
-
-            if self.comp_pole.add_ship(Ship(_points)):
-                self.comp_pole.change_forbidden_zone(Ship(_points))
-                self.cships.append(Ship(_points))
-                itt += 1
-            if itt == 4:
-                break
-
-        self.comp_pole.draw()
-        print("")
-        self.comp_pole.fdraw()
-        print(self.cships)
 
     @staticmethod
     def put_random_ships_to_pole():
@@ -282,7 +249,7 @@ class Gamelogic:
 
         p_pole.add_ship(Ship(_points))
         p_pole.change_forbidden_zone(Ship(_points))
-        p_pole.ships.append(Ship(_points))
+        # p_pole.ships.append(Ship(_points))
 
         # разместим двухклеточные корабли
         itt = 0
@@ -300,7 +267,7 @@ class Gamelogic:
 
             if p_pole.add_ship(Ship(_points)):
                 p_pole.change_forbidden_zone(Ship(_points))
-                p_pole.ships.append(Ship(_points))
+                # p_pole.ships.append(Ship(_points))
                 itt += 1
             if itt == 2:
                 break
@@ -321,35 +288,82 @@ class Gamelogic:
 
             if p_pole.add_ship(Ship(_points)):
                 p_pole.change_forbidden_zone(Ship(_points))
-                p_pole.ships.append(Ship(_points))
+                # p_pole.ships.append(Ship(_points))
                 itt += 1
             if itt == 4:
                 break
 
         return p_pole
 
+    def player_shoot(self):
+        while True:
+            coord = input("Введите координаты выстрела x y ")
+            p = Point.convert_coord_to_point(coord)
+            print(p)
+            if self.comp_pole.pole[p.y-1][p.x-1] == "■":
+                self.comp_pole.pole[p.y-1][p.x-1] = "X"
+                self.mask_comp_pole.pole[p.y-1][p.x-1] = "X"
+                for ship in self.comp_pole.ships:
+                    ship.hit(p)
+                    ship.check_state()
+                break
+            elif self.comp_pole.pole[p.y-1][p.x-1] == "O":
+                self.comp_pole.pole[p.y-1][p.x-1] = "T"
+                self.mask_comp_pole.pole[p.y - 1][p.x - 1] = "T"
+                break
+            else:
+                print("В данную точку уже стреляли!")
 
 
 
 
+    def computer_shoot(self):
+        while True:
+            p = Point(rnd.randint(1, 6), rnd.randint(1, 6))
+            if self.gamer_pole.pole[p.y-1][p.x-1] == "■":
+                self.gamer_pole.pole[p.y-1][p.x-1] = "X"
+                for ship in self.gamer_pole.ships:
+                    ship.hit(p)
+                    ship.check_state()
+                break
+            elif self.gamer_pole.pole[p.y-1][p.x-1] == "O":
+                self.gamer_pole.pole[p.y-1][p.x-1] = "T"
+                break
 
 
-# gl = Gamelogic()
-# gl.put_ships_to_gamer_pole()
+
+
+gl = Gamelogic()
+gl.put_ships_to_gamer_pole()
+# print(len(gl.gamer_pole.ships))
 # gl.gamer_pole.draw()
+# print("")
+gl.put_ships_to_computer_pole()
+# print(len(gl.comp_pole.ships))
+# gl.comp_pole.draw()
 
 
-
-s1 = Ship([Point(1, 1), Point(1, 2)])
-s1.hit(Point(2, 2))
-s1.check_state()
-print(s1.get_state())
-s1.hit(Point(1, 1))
-s1.check_state()
-print(s1.get_state())
-s1.hit(Point(1, 2))
-s1.check_state()
-print(s1.get_state())
-
-L=Gamelogic.put_random_ships_to_pole()
-print(L)
+for i in range(36):
+    gl.computer_shoot()
+    if gl.gamer_pole.check_loose_condition():
+        print("Победил компьютер")
+        break
+    gl.player_shoot()
+    if gl.comp_pole.check_loose_condition():
+        print("Победил игрок")
+        break
+    gl.show_interface()
+gl.show_interface()
+# s1 = Ship([Point(1, 1), Point(1, 2)])
+# s1.hit(Point(2, 2))
+# s1.check_state()
+# print(s1.get_state())
+# s1.hit(Point(1, 1))
+# s1.check_state()
+# print(s1.get_state())
+# s1.hit(Point(1, 2))
+# s1.check_state()
+# print(s1.get_state())
+#
+# L=Gamelogic.put_random_ships_to_pole()
+# print(L)
