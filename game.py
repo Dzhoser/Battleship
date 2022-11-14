@@ -57,9 +57,6 @@ class Ship:
             self.set_state(False)
 
 
-
-
-
 class Pole:
     def __init__(self):
         self.ships = []
@@ -139,16 +136,39 @@ class Pole:
 
 
 
-
-# m1 = Pole()
-# m1.draw()
-
-
 class Gamelogic:
     def __init__(self):
         self.intro()
-        # self.put_ships_to_gamer_pole()
-        # self.put_ships_to_computer_pole()
+        self.put_ships_to_gamer_pole()
+        self.put_ships_to_computer_pole()
+
+    def start_game(self):
+        while True:
+            print("")
+            print("Ход компьютера")
+            shoot = gl.computer_shoot()
+            if gl.gamer_pole.check_loose_condition():
+                return print("Победил компьютер")
+            while shoot:
+                print("Компьютер попал в ваш корабль!!!")
+                shoot = gl.computer_shoot()
+                # self.show_interface()
+                if gl.gamer_pole.check_loose_condition():
+                    return print("Победил компьютер")
+            self.show_interface()
+            print("")
+            print("Ход игрока")
+            shoot = gl.player_shoot()
+            if gl.comp_pole.check_loose_condition():
+                    return print("Победил игрок")
+            while shoot:
+                print("Вы попали в корабль компьютера!!!")
+                print("Дополнительный выстрел")
+                self.show_interface()
+                shoot = gl.player_shoot()
+                if gl.comp_pole.check_loose_condition():
+                    return print("Победил игрок")
+            self.show_interface()
 
     def intro(self):
         print("Игра морской бой")
@@ -159,10 +179,9 @@ class Gamelogic:
         answer = input("Разместить корабли игрока случайным образом? y/n ")
         if answer == "y":
             self.gamer_pole = Gamelogic.put_random_ships_to_pole()
-        else:
+        elif answer == "n":
             i = 0
             points = []
-
             _len = 3
             print("Введите координаты трехклеточного корабля x y")
             while i < _len:
@@ -194,7 +213,6 @@ class Gamelogic:
                     self.gamer_pole.ships.append(Ship(points))
                     k += 1
 
-
             i = 0
             k = 0
             _len = 1
@@ -212,6 +230,9 @@ class Gamelogic:
                     self.gamer_pole.change_forbidden_zone(Ship(points))
                     self.gamer_pole.ships.append(Ship(points))
                     k += 1
+        else:
+            print("Введите y или n")
+            self.put_ships_to_gamer_pole()
 
 
     def put_ships_to_computer_pole(self):
@@ -255,7 +276,6 @@ class Gamelogic:
         itt = 0
         while True:
             start_point = Point(rnd.randint(1, 5), rnd.randint(1, 5))
-            # print(start_point)
             direction = rnd.randint(0, 1)  # направление размещения 0 - горизонталь 1 - вертикаль
             _points = []
             _points.append(start_point)
@@ -267,7 +287,6 @@ class Gamelogic:
 
             if p_pole.add_ship(Ship(_points)):
                 p_pole.change_forbidden_zone(Ship(_points))
-                # p_pole.ships.append(Ship(_points))
                 itt += 1
             if itt == 2:
                 break
@@ -276,7 +295,6 @@ class Gamelogic:
         itt = 0
         while True:
             start_point = Point(rnd.randint(1, 6), rnd.randint(1, 6))
-            # print(start_point)
             direction = rnd.randint(0, 1)  # направление размещения 0 - горизонталь 1 - вертикаль
             _points = []
             _points.append(start_point)
@@ -288,7 +306,6 @@ class Gamelogic:
 
             if p_pole.add_ship(Ship(_points)):
                 p_pole.change_forbidden_zone(Ship(_points))
-                # p_pole.ships.append(Ship(_points))
                 itt += 1
             if itt == 4:
                 break
@@ -296,11 +313,13 @@ class Gamelogic:
         return p_pole
 
     def player_shoot(self):
+        output_condition = False
         while True:
             coord = input("Введите координаты выстрела x y ")
             p = Point.convert_coord_to_point(coord)
             print(p)
             if self.comp_pole.pole[p.y-1][p.x-1] == "■":
+                output_condition = True
                 self.comp_pole.pole[p.y-1][p.x-1] = "X"
                 self.mask_comp_pole.pole[p.y-1][p.x-1] = "X"
                 for ship in self.comp_pole.ships:
@@ -313,14 +332,17 @@ class Gamelogic:
                 break
             else:
                 print("В данную точку уже стреляли!")
+        return output_condition
 
 
 
 
     def computer_shoot(self):
+        output_condition = False
         while True:
             p = Point(rnd.randint(1, 6), rnd.randint(1, 6))
             if self.gamer_pole.pole[p.y-1][p.x-1] == "■":
+                output_condition = True
                 self.gamer_pole.pole[p.y-1][p.x-1] = "X"
                 for ship in self.gamer_pole.ships:
                     ship.hit(p)
@@ -329,41 +351,17 @@ class Gamelogic:
             elif self.gamer_pole.pole[p.y-1][p.x-1] == "O":
                 self.gamer_pole.pole[p.y-1][p.x-1] = "T"
                 break
-
+        return output_condition
 
 
 
 gl = Gamelogic()
-gl.put_ships_to_gamer_pole()
-# print(len(gl.gamer_pole.ships))
-# gl.gamer_pole.draw()
-# print("")
-gl.put_ships_to_computer_pole()
-# print(len(gl.comp_pole.ships))
-# gl.comp_pole.draw()
+gl.start_game()
 
 
-for i in range(36):
-    gl.computer_shoot()
-    if gl.gamer_pole.check_loose_condition():
-        print("Победил компьютер")
-        break
-    gl.player_shoot()
-    if gl.comp_pole.check_loose_condition():
-        print("Победил игрок")
-        break
-    gl.show_interface()
-gl.show_interface()
-# s1 = Ship([Point(1, 1), Point(1, 2)])
-# s1.hit(Point(2, 2))
-# s1.check_state()
-# print(s1.get_state())
-# s1.hit(Point(1, 1))
-# s1.check_state()
-# print(s1.get_state())
-# s1.hit(Point(1, 2))
-# s1.check_state()
-# print(s1.get_state())
-#
-# L=Gamelogic.put_random_ships_to_pole()
-# print(L)
+
+
+
+
+
+
